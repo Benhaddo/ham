@@ -1,0 +1,338 @@
+#include <stdio.h>
+#include <stdbool.h>
+
+// Définissez LIGNES et COLONNES avec les valeurs appropriées
+#define LIGNES 9
+#define COLONNES 9
+
+
+/*char gridChar(int i) {
+    switch(i) {
+        case -1: return 'X';
+        case 0: return ' ';
+        case 1: return 'O';
+    }
+}*/
+
+void afficherGrilleChar(char grille[LIGNES][COLONNES]) {
+    int g_size = 9;
+
+    // Affiche l'état actuel de la grille
+    for (int col = 0; col <= g_size - 1; col++) {
+        printf("    ");
+        printf("%-4d", col);
+    }
+    printf("\n\n\n");
+
+    for (size_t j = 0; j < g_size; j++) {
+        printf("   / \\  ");
+    }
+    printf("\n");
+
+    for (size_t j = 0; j < g_size; j++) {
+        printf(" /     \\");
+    }
+    printf("\n");
+
+    for (size_t j = 0; j < 10; j++) {
+        printf("|   %c   ", grille[0][j]);
+    }
+    printf("0");
+    printf("\n");
+
+    for (size_t j = 0; j < 10; j++) {
+        printf("|       ");
+    }
+    printf("\n");
+
+    for (size_t j = 0; j < 9; j++) {
+        printf(" \\     /");
+    }
+    printf(" \\      ");
+    printf("\n");
+
+    for (size_t j = 0; j < 9; j++) {
+        printf("   \\ /  ");
+    }
+    printf("   \\    ");
+    printf("\n");
+
+    for (int i = 1; i < 9; i++) {
+        for (int k = 0; k < i; k++) {
+            printf("    ");
+        }
+
+        for (int j = 0; j < 10; j++) {
+            printf("|   %c   ", grille[i][j]);
+        }
+        printf("%d", i);
+        printf("\n");
+
+        for (int k = 0; k < i; k++) {
+            printf("    ");
+        }
+
+        for (int j = 0; j < 10; j++) {
+            printf("|       ");
+        }
+        printf("\n");
+
+        for (int k = 0; k < i; k++) {
+            printf("    ");
+        }
+
+        for (int j = 0; j < 9; j++) {
+            printf(" \\     /");
+        }
+        printf(" \\      \n");
+
+        for (int k = 0; k < i; k++) {
+            printf("    ");
+        }
+
+        for (int j = 0; j < 9; j++) {
+            printf("   \\ /  ");
+        }
+        printf("   \\    \n");
+    }
+}
+int visited[9][9] = {0};
+
+struct Position {
+    int row;
+    int col;
+};
+
+int isValid(int row, int col) {
+    return (row >= 0 && row < 9 && col >= 0 && col < 9);
+}
+
+void findNeighbors(struct Position current, struct Position neighbors[], int *count, char grille[LIGNES][COLONNES]) {
+    int directions[6][2] = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {-1, 1}, {1, -1}};
+
+    for (int k = 0; k < 6; ++k) {
+        int ni = current.row + directions[k][0];
+        int nj = current.col + directions[k][1];
+
+        if (isValid(ni, nj) && grille[ni][nj] == 'X' && !visited[ni][nj]) {
+            neighbors[*count].row = ni;
+            neighbors[*count].col = nj;
+            visited[ni][nj] = 1;
+            ++(*count);
+        }
+    }
+}
+void findNeighborso(struct Position current, struct Position neighbors[], int *count, char grille[LIGNES][COLONNES]) {
+    int directions[6][2] = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {-1, 1}, {1, -1}};
+
+    for (int k = 0; k < 6; ++k) {
+        int ni = current.row + directions[k][0];
+        int nj = current.col + directions[k][1];
+
+        if (isValid(ni, nj) && grille[ni][nj] == 'O' && !visited[ni][nj]) {
+            neighbors[*count].row = ni;
+            neighbors[*count].col = nj;
+            visited[ni][nj] = 1;
+            ++(*count);
+        }
+    }
+}
+
+// Update the function prototype to include the 'grille' parameter
+ bool dfs(struct Position start, char grille[LIGNES][COLONNES]) {
+    if (grille[start.row][start.col] != 'X') {
+        return false;
+    }
+
+    struct Position queue[100];
+    int front = 0, rear = 0;
+    queue[rear++] = start;
+
+    while (front < rear) {
+        struct Position current = queue[front++];
+
+        if (current.row == 8) {
+            return true;
+        }
+
+        visited[current.row][current.col] = 1;
+
+        struct Position neighbors[6];
+        int count = 0;
+
+        // Pass 'grille' as an additional parameter
+        findNeighbors(current, neighbors, &count, grille);
+
+        for (int k = 0; k < count; ++k) {
+            queue[rear++] = neighbors[k];
+        }
+    }
+
+    return false;
+}
+
+// Update the function prototype to include the 'grille' parameter
+bool checkPaths(char grille[LIGNES][COLONNES]) {
+    for (int i = 0; i < 9; ++i) {
+        struct Position start = {0, i};
+        visited[0][i] = 1; // Marquer la position de départ comme visitée
+        if (dfs(start, grille)) {
+            return true;
+        }
+        // Réinitialiser le tableau visited pour la prochaine itération
+        for (int row = 0; row < LIGNES; ++row) {
+            for (int col = 0; col < COLONNES; ++col) {
+                visited[row][col] = 0;
+            }
+        }
+    }
+    return false;
+}
+
+bool dfso(struct Position start, char grille[LIGNES][COLONNES]) {
+    if (grille[start.row][start.col] != 'O') {
+        return false;
+    }
+
+    struct Position queue[100];
+    int front = 0, rear = 0;
+    queue[rear++] = start;
+
+    while (front < rear) {
+        struct Position current = queue[front++];
+
+        if (current.col == 8) {
+            return true;
+        }
+
+        visited[current.row][current.col] = 1;
+
+        struct Position neighbors[6];
+        int count = 0;
+
+        // Pass 'grille' as an additional parameter
+        findNeighborso(current, neighbors, &count, grille);
+
+        for (int k = 0; k < count; ++k) {
+            queue[rear++] = neighbors[k];
+        }
+    }
+
+    return false;
+}
+
+// Update the function prototype to include the 'grille' parameter
+bool checkPathso(char grille[LIGNES][COLONNES]) {
+    for (int i = 0; i < 9; ++i) {
+        struct Position start = {i, 0};
+        visited[i][0] = 1; // Marquer la position de départ comme visitée
+        if (dfso(start, grille)) {  // Utilisez dfso au lieu de dfs ici
+            return true;
+        }
+        // Réinitialiser le tableau visited pour la prochaine itération
+        for (int row = 0; row < LIGNES; ++row) {
+            for (int col = 0; col < COLONNES; ++col) {
+                visited[row][col] = 0;
+            }
+        }
+    }
+    return false;
+}
+int win(char grille[LIGNES][COLONNES], char player) {
+    if (player == 'X') {
+        // Vérifiez pour 'X' (verticalement)
+        return checkPaths(grille) ? 1 : 0;
+    } else if (player == 'O') {
+        // Vérifiez pour 'O' (horizontalement)
+        return checkPathso(grille) ? -1 : 0;
+    } else {
+        // Autres vérifications si nécessaire
+        return 0;
+    }
+}
+
+
+int minimax(char grille[LIGNES][COLONNES], char player) {
+    int winner = win(grille, 'X');
+    if (winner != 0) {
+        return winner * ((player == 'X') ? 1 : -1);
+    }
+
+    int move = -1;
+    int score = (player == 'X') ? -2 : 2;
+
+    for (int i = 0; i < LIGNES; ++i) {
+        for (int j = 0; j < COLONNES; ++j) {
+            if (grille[i][j] == ' ') {
+                grille[i][j] = player;
+                int thisScore = -minimax(grille, (player == 'X') ? 'O' : 'X');
+                grille[i][j] = ' ';
+
+                if ((player == 'X' && thisScore > score) || (player == 'O' && thisScore < score)) {
+                    score = thisScore;
+                    move = i * COLONNES + j;
+                }
+            }
+        }
+    }
+
+    if (move == -1) {
+        return 0;
+    }
+
+    return move;
+}
+
+void computerMove(char grille[LIGNES][COLONNES]) {
+    printf("Computer's move:\n");
+    int move = minimax(grille, 'O');
+    grille[move / COLONNES][move % COLONNES] = 'O';
+}
+
+void playerMove(char grille[LIGNES][COLONNES]) {
+    int move = 0;
+    do {
+        afficherGrilleChar(grille); // Afficher la grille avant chaque mouvement du joueur
+        printf("\nInput move ([0..8]): ");
+        scanf("%d", &move);
+        printf("\n");
+    } while (move >= LIGNES * COLONNES || move < 0 || grille[move / COLONNES][move % COLONNES] != ' ');
+
+    grille[move / COLONNES][move % COLONNES] = 'X';
+}
+
+int main() {
+    char grille[LIGNES][COLONNES] = {
+        {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+        {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+        {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+        {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+        {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+        {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+        {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+        {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+        {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}
+    };
+
+    int currentPlayer = 1;
+
+    while (win(grille, 'X') == 0 && win(grille, 'O') == 0) {
+        if (currentPlayer == 1) {
+            computerMove(grille);
+        } else {
+            playerMove(grille);
+        }
+        currentPlayer *= -1;
+    }
+
+    afficherGrilleChar(grille); // Afficher la grille une dernière fois
+
+    int winner = win(grille, 'X');
+    if (winner == 0) {
+        printf("It's a draw!\n");
+    } else {
+        printf("Player %c wins!\n", (winner == 1) ? 'O' : 'X');
+    }
+
+    return 0;
+}
